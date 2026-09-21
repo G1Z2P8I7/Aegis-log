@@ -1,0 +1,43 @@
+# Binaries & executables
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test & coverage artifacts
+*.out
+*.test
+
+# Node & Next.js build artifacts
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data & WAL segments
+data/
+logs/
+*.log
+*.index
+*.checkpoint
+
+# IDE & system metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Agent & AI assistant caches
+.agent/
+.cursor/
+.gemini/
