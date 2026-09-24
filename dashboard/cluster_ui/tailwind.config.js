@@ -6,9 +6,18 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['"Inter Tight"', 'system-ui', '-apple-system', 'sans-serif'],
+        body: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        italic: ['"Instrument Serif"', 'Georgia', 'serif'],
+      },
       colors: {
-        background: '#0B0F19',
-        card: '#111827',
+        ground: '#2a0b02',
+        'ground-deep': '#120400',
+        flame: '#ff3d00',
+        'flame-lit': '#ff8a1f',
+        background: '#070709',
+        card: '#0c0d14',
         'card-border': '#1F2937',
         leader: '#10B981',
         follower: '#3B82F6',

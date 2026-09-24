@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import {
   Activity,
   ArrowRight,
@@ -30,9 +29,85 @@ import {
 import SpotlightCard from '../components/SpotlightCard'
 import ScrollLightingBeam from '../components/ScrollLightingBeam'
 
+const FluxLogo = ({ className = 'w-6 h-6', ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 28 28"
+    width="28"
+    height="28"
+    fill="none"
+    aria-hidden="true"
+    className={`w-6 h-6 flex-shrink-0 inline-block ${className}`}
+    {...props}
+  >
+    <path d="M14 1.6 20.3 8 14 14.4 7.7 8 14 1.6Z" fill="#FF6A00" />
+    <path d="M6.4 9.3 12.7 15.7 6.4 22.1 0.1 15.7 6.4 9.3Z" fill="#FF3D00" />
+    <path d="M21.6 9.3 27.9 15.7 21.6 22.1 15.3 15.7 21.6 9.3Z" fill="#FF9A2E" />
+  </svg>
+)
+
+const GlobeIcon = ({ className = 'w-4 h-4', ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.3"
+    aria-hidden="true"
+    className={`w-4 h-4 flex-shrink-0 ${className}`}
+    {...props}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.5 2.6 3.7 5.7 3.7 9S14.5 18.4 12 21c-2.5-2.6-3.7-5.7-3.7-9S9.5 5.6 12 3Z" />
+  </svg>
+)
+
+const MenuIcon = ({ className = 'w-5 h-5', ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    aria-hidden="true"
+    className={`w-5 h-5 ${className}`}
+    {...props}
+  >
+    <path d="M4 8h16M4 16h16" />
+  </svg>
+)
+
+const CloseIcon = ({ className = 'w-5 h-5', ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    aria-hidden="true"
+    className={`w-5 h-5 ${className}`}
+    {...props}
+  >
+    <path d="m6 6 12 12M18 6 6 18" />
+  </svg>
+)
+
+const engineStandards = [
+  { name: 'Win32 Kernel Direct', icon: <HardDrive className="w-4 h-4 text-rose-400" /> },
+  { name: 'Raft Consensus §7', icon: <Layers className="w-4 h-4 text-orange-400" /> },
+  { name: 'IEEE 802.3 CRC32', icon: <Shield className="w-4 h-4 text-amber-400" /> },
+  { name: '17B Binary Wire Frame', icon: <Zap className="w-4 h-4 text-yellow-400" /> },
+  { name: '0-Alloc Ring Buffers', icon: <Cpu className="w-4 h-4 text-emerald-400" /> },
+]
+
+const ghostBars = [34, 52, 44, 70, 88]
+
 export default function LandingPage() {
   const [copied, setCopied] = useState(false)
-  const [activeTab, setActiveTab] = useState<'metrics' | 'architecture'>('metrics')
   const [ticker, setTicker] = useState(0)
   const [isClusterOnline, setIsClusterOnline] = useState(false)
   const [clusterTelemetry, setClusterTelemetry] = useState<{
@@ -46,6 +121,31 @@ export default function LandingPage() {
   } | null>(null)
   const [mounted, setMounted] = useState(false)
   const [currentTime, setCurrentTime] = useState('12:00:00 PM')
+  const [navOpen, setNavOpen] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    const play = video.play()
+    if (play?.catch) play.catch(() => {})
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.pause()
+      setVideoReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = navOpen ? 'hidden' : ''
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [navOpen])
 
   // Set mounted and track live clock after hydration
   useEffect(() => {
@@ -88,32 +188,41 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#070709] text-slate-100 selection:bg-rose-500/30 selection:text-rose-200 overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#120400] text-slate-100 selection:bg-rose-500/30 selection:text-rose-200 overflow-x-hidden font-body">
       {/* Dynamic Scroll Spotlight & Ambient Lighting */}
       <ScrollLightingBeam />
 
-      {/* Sticky Glass Navbar */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/[0.06] bg-[#070709]/70 backdrop-blur-xl transition-all">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 p-0.5 shadow-lg shadow-rose-500/20 flex items-center justify-center">
-              <div className="w-full h-full bg-[#070709] rounded-[10px] flex items-center justify-center">
-                <Shield className="w-5 h-5 text-rose-400" />
+      {/* Sticky Pill Navbar */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-[#120400]/80 backdrop-blur-xl px-4 sm:px-8 py-3.5 transition-all">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <a href="#main" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff3d00] to-[#ff8a1f] p-0.5 shadow-lg shadow-orange-500/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-full h-full bg-[#120400] rounded-[10px] flex items-center justify-center p-1">
+                <FluxLogo className="w-5 h-5" />
               </div>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span className="text-xl font-bold tracking-tight text-white font-mono">Aegis</span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30 font-mono">
                 v1.0
               </span>
             </div>
-          </div>
+          </a>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm text-slate-400 font-medium">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#benchmarks" className="hover:text-white transition-colors">Benchmarks</a>
-            <a href="#architecture" className="hover:text-white transition-colors">Architecture</a>
-            <a href="#quickstart" className="hover:text-white transition-colors">Quickstart</a>
+          {/* Pill navigation capsule */}
+          <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-2xl border border-white/[0.12] bg-[#2a0b02]/50 backdrop-blur-md">
+            <a href="#features" className="px-3.5 py-1 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.08] transition-colors">
+              Features
+            </a>
+            <a href="#architecture" className="px-3.5 py-1 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.08] transition-colors">
+              Architecture
+            </a>
+            <a href="#benchmarks" className="px-3.5 py-1 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.08] transition-colors">
+              Benchmarks
+            </a>
+            <a href="#quickstart" className="px-3.5 py-1 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.08] transition-colors">
+              Quickstart
+            </a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -121,229 +230,230 @@ export default function LandingPage() {
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono">
               <span className={`w-2 h-2 rounded-full ${isClusterOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
               <span className="text-slate-300">
-                {isClusterOnline ? 'Cluster Online' : 'Local Standby'}
+                {isClusterOnline ? 'Cluster Online' : 'Standby'}
               </span>
             </div>
 
             <Link
               href="/dashboard"
-              className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-lg shadow-rose-500/25 transition-all duration-300 hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#ff3d00] to-[#ff8a1f] hover:brightness-110 shadow-lg shadow-orange-500/25 transition-all hover:scale-[1.02]"
             >
               <span>Launch Cluster</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+
+            <button
+              className="md:hidden p-2 rounded-lg border border-white/10 text-slate-300 hover:text-white"
+              onClick={() => setNavOpen(!navOpen)}
+              aria-label="Toggle menu"
+            >
+              {navOpen ? <CloseIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {navOpen && (
+          <div className="md:hidden fixed inset-x-4 top-20 p-5 rounded-2xl border border-white/15 bg-[#120400]/95 backdrop-blur-2xl z-50 shadow-2xl flex flex-col gap-3">
+            <a href="#features" onClick={() => setNavOpen(false)} className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/[0.06]">
+              Features
+            </a>
+            <a href="#architecture" onClick={() => setNavOpen(false)} className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/[0.06]">
+              Architecture
+            </a>
+            <a href="#benchmarks" onClick={() => setNavOpen(false)} className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/[0.06]">
+              Benchmarks
+            </a>
+            <a href="#quickstart" onClick={() => setNavOpen(false)} className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/[0.06]">
+              Quickstart
+            </a>
+            <Link
+              href="/dashboard"
+              onClick={() => setNavOpen(false)}
+              className="w-full text-center py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#ff3d00] to-[#ff8a1f] shadow-lg shadow-orange-500/25 mt-2"
+            >
+              Launch Cluster
+            </Link>
+          </div>
+        )}
       </header>
 
-      {/* HERO SECTION */}
-      <section className="relative pt-24 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
-        {/* Release Tag */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-rose-500/20 text-rose-300 text-xs font-mono mb-8 backdrop-blur-md shadow-inner shadow-rose-500/10"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-          <span>First-Principles Distributed Commit Log for Windows 11</span>
-        </motion.div>
+      {/* MAIN CONTENT AREA */}
+      <main id="main">
+        {/* FLUXORA HERO SECTION WITH ASYMMETRIC SCRIM & VIDEO BACKDROP */}
+        <section className="relative min-h-[92vh] flex flex-col justify-between overflow-hidden px-6 pt-12 pb-8 bg-gradient-to-b from-[#200802] via-[#120400] to-[#0a0200]">
+          {/* Looping Background Video with Asymmetric Scrim */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <video
+              ref={videoRef}
+              className={`w-full h-full object-cover object-[68%_center] transition-opacity duration-1000 ${videoReady ? 'opacity-80' : 'opacity-0'}`}
+              src="/hero-loop.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              onCanPlay={() => setVideoReady(true)}
+            />
+            {/* Scrim Gradients */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(96deg, rgba(10,3,0,0.94) 0%, rgba(14,4,0,0.78) 32%, rgba(20,6,0,0.22) 54%, rgba(20,6,0,0) 70%), linear-gradient(0deg, rgba(9,2,0,0.85) 0%, rgba(9,2,0,0.18) 30%, rgba(0,0,0,0) 48%), linear-gradient(180deg, rgba(8,2,0,0.6) 0%, rgba(0,0,0,0) 24%)',
+              }}
+            />
+          </div>
 
-        {/* Big Bold Hero Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-5xl leading-[1.08] mb-6 text-white"
-        >
-          The Ultra-Low Latency <br className="hidden sm:inline" />
-          <span>Distributed Commit Log </span>
-          <span className="text-rose-400">for Windows.</span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-base sm:text-lg text-slate-400 max-w-3xl mb-10 leading-relaxed font-normal"
-        >
-          Engineered with <strong className="text-slate-200">zero-copy Win32 memory-mapped storage</strong>, an ultra-dense{' '}
-          <strong className="text-slate-200">17-byte TCP binary wire protocol</strong>, and a fault-tolerant{' '}
-          <strong className="text-slate-200">Raft consensus engine</strong>. Over 8 Million messages per second with zero JVM overhead.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-16"
-        >
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-rose-500 via-rose-600 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-xl shadow-rose-500/20 transition-all hover:scale-[1.02]"
-          >
-            <Activity className="w-4 h-4" />
-            <span>Open Cluster Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-
-          <a
-            href="#benchmarks"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.16] transition-all"
-          >
-            <Gauge className="w-4 h-4 text-orange-400" />
-            <span>View Verified Benchmarks</span>
-          </a>
-
-          {/* Quick Copy Command */}
-          <button
-            onClick={copyCommand}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl font-mono text-xs text-slate-300 bg-[#0c0d12] border border-white/10 hover:border-rose-500/40 transition-colors"
-            title="Copy startup command"
-          >
-            <Terminal className="w-3.5 h-3.5 text-rose-400" />
-            <span>.\start-all.bat</span>
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-          </button>
-        </motion.div>
-
-        {/* HERO APP PREVIEW CARD (Interactive Lighting & Pulse) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="relative w-full max-w-5xl rounded-2xl p-1 bg-gradient-to-b from-white/[0.15] via-white/[0.05] to-transparent shadow-2xl shadow-rose-500/10"
-        >
-          {/* Top light bar reflecting down */}
-          <div className="absolute top-0 left-1/4 right-1/4 h-[2px] bg-gradient-to-r from-transparent via-rose-400 to-transparent blur-sm" />
-
-          <div className="rounded-[15px] bg-[#0c0d14] border border-white/[0.08] p-6 text-left overflow-hidden">
-            {/* Window Top Controls */}
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500/80" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-3 text-xs text-slate-400 font-mono flex items-center gap-2">
-                  <span>aegis-cluster-visualizer</span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-emerald-400 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    3/3 Quorum Active
-                  </span>
-                </span>
-              </div>
-              <div className="text-xs font-mono text-slate-400">
-                Consensus Term: <strong className="text-white">{clusterTelemetry?.term ?? 1}</strong> | Commit Index:{' '}
-                <strong className="text-rose-400">
-                  #{clusterTelemetry?.commit_index !== undefined ? clusterTelemetry.commit_index : 0}
-                  {!isClusterOnline && ' (Idle Baseline)'}
-                </strong>
-              </div>
-            </div>
-
-            {/* Live 3-Node Topology Mockup */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-              {/* Node 1 */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-emerald-500/30 relative overflow-hidden">
-                <div className="absolute top-0 right-0 px-2 py-0.5 text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 rounded-bl-lg">
-                  LEADER
+          <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center my-auto py-8">
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.55fr)] gap-12 items-start">
+              {/* Left Lead Copy */}
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 pt-3 border-t border-white/10 text-xs text-slate-400 font-mono mb-6">
+                  <GlobeIcon className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span>First-Principles Distributed Commit Log for Windows 11</span>
                 </div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                    <Server className="w-4 h-4" />
+
+                <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[0.94] mb-6">
+                  The Ultra-Low Latency<br />
+                  Distributed Commit Log<br />
+                  Not <em className="font-italic font-normal text-orange-400 not-italic italic">JVM Bloat</em>
+                </h1>
+
+                <p className="text-base sm:text-lg text-slate-300/85 leading-relaxed max-w-xl mb-8 font-body">
+                  Engineered with zero-copy Win32 memory-mapped storage, an ultra-dense 17-byte TCP binary wire protocol, and a fault-tolerant Raft consensus engine. Over 8 Million messages per second with microsecond latency.
+                </p>
+
+                {/* CTA Row */}
+                <div className="flex flex-wrap items-center gap-4 mb-10">
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full font-semibold text-sm text-white bg-gradient-to-r from-[#ff3d00] to-[#ff8a1f] hover:brightness-110 shadow-xl shadow-orange-500/30 transition-all hover:scale-[1.02]"
+                  >
+                    <span>Launch Cluster</span>
+                    <span className="w-8 h-8 rounded-full bg-white text-orange-600 flex items-center justify-center">
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Link>
+
+                  <button
+                    onClick={copyCommand}
+                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-full font-mono text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md transition-all"
+                    title="Copy startup command"
+                  >
+                    <Terminal className="w-3.5 h-3.5 text-orange-400" />
+                    <span>.\start-all.bat</span>
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+                  </button>
+
+                  <div className="flex items-center gap-3 pl-2">
+                    <div className="flex -space-x-2">
+                      <span className="w-7 h-7 rounded-full border-2 border-[#120400] bg-gradient-to-br from-[#ff3d00] to-[#ff8a1f]" />
+                      <span className="w-7 h-7 rounded-full border-2 border-[#120400] bg-gradient-to-br from-[#ff7a3d] to-[#ffb27a]" />
+                      <span className="w-7 h-7 rounded-full border-2 border-[#120400] bg-gradient-to-br from-[#10b981] to-[#34d399]" />
+                      <span className="w-7 h-7 rounded-full border-2 border-[#120400] bg-gradient-to-br from-[#3b82f6] to-[#60a5fa]" />
+                    </div>
+                    <div className="text-[11px] leading-tight text-slate-400 font-mono">
+                      <strong className="block text-white font-sans text-xs">3/3 Quorum Active</strong>
+                      <span>{isClusterOnline ? 'Live Cluster Online' : 'Local Standby Mode'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3 Stat Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#381406]/40 backdrop-blur-md">
+                    <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">8.29M+</div>
+                    <div className="text-xs text-slate-400 mt-1">Async mmap throughput (msgs/s)</div>
+                  </div>
+                  <div className="p-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#781e04]/40 to-[#300e02]/40 backdrop-blur-md">
+                    <div className="text-2xl sm:text-3xl font-display font-bold text-orange-400 font-mono">
+                      {clusterTelemetry?.p50_latency_ms ? `${clusterTelemetry.p50_latency_ms}ms` : '1.18ms'}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1">Median quorum latency (p50)</div>
+                  </div>
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#381406]/40 backdrop-blur-md">
+                    <div className="text-2xl sm:text-3xl font-display font-bold text-white font-mono">96.8ms</div>
+                    <div className="text-xs text-slate-400 mt-1">Leader failover SLA (&lt;150ms)</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Ghost Analytics Panel (Desktop) */}
+              <aside className="hidden xl:flex flex-col justify-start max-w-xs text-slate-400/70 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm self-start mt-6">
+                <div className="flex items-end gap-4 mb-4">
+                  <div className="flex items-end gap-1.5 h-16">
+                    {ghostBars.map((h, i) => (
+                      <span key={i} style={{ height: `${h}%` }} className="w-2 rounded-t bg-orange-400/60" />
+                    ))}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">Node 1</h4>
-                    <span className="text-[10px] font-mono text-slate-400">HTTP :10001 | Client :8001 | Raft :9001</span>
+                    <div className="font-display text-xl font-bold text-white/90">0 Races</div>
+                    <div className="text-[10px] font-mono leading-tight text-slate-400">Go Concurrency Safe<br />Linearizable Raft</div>
                   </div>
                 </div>
-                <div className="space-y-1 text-xs font-mono text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Replication Lag:</span>
-                    <span className="text-emerald-400 font-bold">0 msgs (Synced)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Disk WAL:</span>
-                    <span className="text-slate-300">data/node-1</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Node 2 */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] relative">
-                <div className="absolute top-0 right-0 px-2 py-0.5 text-[10px] font-mono font-bold bg-white/10 text-slate-300 rounded-bl-lg">
-                  FOLLOWER
-                </div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                    <Server className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Node 2</h4>
-                    <span className="text-[10px] font-mono text-slate-400">HTTP :10002 | Client :8002 | Raft :9002</span>
-                  </div>
-                </div>
-                <div className="space-y-1 text-xs font-mono text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Replication Lag:</span>
-                    <span className="text-emerald-400 font-bold">0 msgs (Synced)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Heartbeat:</span>
-                    <span className="text-blue-400">Active (80ms)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Node 3 */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] relative">
-                <div className="absolute top-0 right-0 px-2 py-0.5 text-[10px] font-mono font-bold bg-white/10 text-slate-300 rounded-bl-lg">
-                  FOLLOWER
-                </div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                    <Server className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Node 3</h4>
-                    <span className="text-[10px] font-mono text-slate-400">HTTP :10003 | Client :8003 | Raft :9003</span>
-                  </div>
-                </div>
-                <div className="space-y-1 text-xs font-mono text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Replication Lag:</span>
-                    <span className="text-emerald-400 font-bold">0 msgs (Synced)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Heartbeat:</span>
-                    <span className="text-blue-400">Active (80ms)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Streaming Log Banner */}
-            <div className="rounded-xl bg-black/40 border border-white/[0.06] p-3 font-mono text-xs text-slate-400 flex items-center justify-between">
-              <div className="flex items-center gap-2 truncate">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-                <span className="text-slate-500" suppressHydrationWarning>
-                  [{mounted ? currentTime : '12:00:00 PM'}]
-                </span>
-                <span className="text-emerald-400">APPEND_QUORUM:</span>
-                <span className="truncate text-slate-300">
-                  Offset #{clusterTelemetry?.commit_index ?? ticker} committed to Win32 mmap segment 000000.log with IEEE CRC32 valid
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-500 flex-shrink-0 ml-3">
-                {clusterTelemetry?.p50_latency_ms ? `${clusterTelemetry.p50_latency_ms}ms p50` : '1.18ms p50'}
-              </span>
+                <h3 className="font-display font-semibold text-white/80 text-sm mb-1">Deterministic Guarantees</h3>
+                <p className="text-xs text-slate-400/80 leading-relaxed font-body">
+                  Real-time IEEE CRC32 bitrot detection, strict Raft log-matching invariant proofs, and non-blocking ring-buffer writes with zero heap allocations.
+                </p>
+              </aside>
             </div>
           </div>
-        </motion.div>
-      </section>
+
+          {/* Hero Bottom Bar */}
+          <div className="relative z-10 max-w-7xl mx-auto w-full pt-6 mt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <span className="font-display font-black text-5xl sm:text-6xl text-white/[0.05] tracking-tight select-none">
+              AEGIS
+            </span>
+            <div className="text-right">
+              <span className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2">
+                Engine Specifications & Invariants
+              </span>
+              <ul className="flex items-center gap-4 flex-wrap text-xs text-slate-300">
+                {engineStandards.map((std) => (
+                  <li key={std.name} className="inline-flex items-center gap-1.5">
+                    {std.icon}
+                    <span>{std.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* LIVE CLUSTER TELEMETRY BANNER & STREAM */}
+        <div className="border-b border-white/[0.08] bg-[#0c0502]/95 backdrop-blur-xl px-6 py-4">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div className="flex items-center gap-3">
+              <span className={`w-2.5 h-2.5 rounded-full ${isClusterOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span className="text-slate-300 font-bold">
+                {isClusterOnline ? '3-Node Cluster Quorum Online' : 'Aegis Local Standby Engine'}
+              </span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">
+                Term: <strong className="text-white">{clusterTelemetry?.term ?? 1}</strong>
+              </span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">
+                Commit Index: <strong className="text-rose-400">#{clusterTelemetry?.commit_index ?? ticker}</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4 text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500" suppressHydrationWarning>[{mounted ? currentTime : '12:00:00 PM'}]</span>
+                <span className="text-emerald-400">APPEND_QUORUM:</span>
+                <span className="text-slate-300 truncate max-w-xs md:max-w-sm">
+                  mmap segment 000000.log IEEE CRC32 valid
+                </span>
+              </div>
+              <Link href="/dashboard" className="text-xs font-semibold text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                <span>Visualizer</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
 
       {/* METRIC HIGHLIGHT STRIP */}
       <section className="border-y border-white/[0.06] bg-[#0c0d12]/50 backdrop-blur-md py-10 px-6">
@@ -779,6 +889,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* COMPREHENSIVE FOOTER */}
       <footer className="border-t border-white/[0.08] bg-[#050608] pt-16 pb-12 px-6">
